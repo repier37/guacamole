@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+  guacd:
+    image: guacamole/guacd:1.5.5
+    container_name: guacd
+    restart: always
+    ports:
+      - "4822:4822"
+
+  guacamole:
+    image: guacamole/guacamole:1.5.5
+    container_name: guacamole
+    restart: always
+    depends_on:
+      - guacd
+      - db
+    links:
+      - guacd:guacd
+      - db:db
+    environment:
+      TOTP_ENABLED: true
+      GUACD_HOSTNAME: guacd
+      MYSQL_HOSTNAME: db
+      MYSQL_DATABASE: guacamole_db
+      MYSQL_USER: guacamole_user
+      MYSQL_PASSWORD: guacamole_password
+      #MYSQL_DRIVER: mysql
+      #MYSQL_SSL_MODE: disabled
+    ports:
+      - "8085:8080"
+
+  db:
+    hostname: db
+    image: repier37/guacamole_bd
+    restart: always
+    volumes:
+      - guac_db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: guacamole_db
+      MYSQL_USER: guacamole_user
+      MYSQL_PASSWORD: guacamole_password
+
+
+
+volumes:
+  guac_db_data:
